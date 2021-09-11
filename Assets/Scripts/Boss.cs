@@ -36,8 +36,7 @@ public class Boss : Enemy
     // Update is called once per frame
     void Update()
     {
-        if (Vector3.Distance(transform.position, player.transform.position) > 20.0f) {
-            Debug.Log(Vector3.Distance(transform.position, player.transform.position));
+        if (Vector3.Distance(transform.position, player.transform.position) > 20.0f || player.gameOver) {
             return;
         }
 
@@ -154,11 +153,15 @@ public class Boss : Enemy
 
     private void OnMouseOver()
     {
+        if (player.gameOver)
+            return;
         attackButtonImage.color = Color.green;
     }
 
     private void OnMouseExit()
     {
+        if (player.gameOver)
+            return;
         if (attackText.text != "")
         {
             attackButtonImage.color = Color.white;

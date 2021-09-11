@@ -31,7 +31,7 @@ public class Player : MonoBehaviour
             if (blockTimeLeft <= 0)
                 blocking = false;
         }
-        if (Input.GetKeyDown(KeyCode.LeftShift) && blocking==false) {
+        if (Input.GetKeyDown(KeyCode.LeftShift) && blocking==false && gameOver==false) {
             blocking = true;
             blockTimeLeft = blockTime;
         }

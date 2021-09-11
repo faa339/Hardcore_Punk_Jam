@@ -51,7 +51,7 @@ public class Enemy : MonoBehaviour
     void Update()
     {
         //Don't attack if the player is too far
-        if (Vector3.Distance(transform.position, player.transform.position) > 10.0f) {
+        if (Vector3.Distance(transform.position, player.transform.position) > 10.0f || player.gameOver) {
             return;
         }
         Debug.Log(Vector3.Distance(transform.position, player.transform.position));
@@ -62,7 +62,7 @@ public class Enemy : MonoBehaviour
             attackButton.gameObject.SetActive(false);
             //Switch to death sprite
         }
-        if (dead == false) { //Don't bother dealing with this if the entity/player is dead
+        if (dead == false && player.gameOver==false) { //Don't bother dealing with this if the entity is dead
             if (canAttack == false && player.blocking == false)
             { //If targeted and the player isn't blocking
                 if (Input.GetKeyDown(KeyCode.W))
@@ -137,7 +137,8 @@ public class Enemy : MonoBehaviour
                 }
             }
         }
-        
+        if (player.health <= 0)
+            player.gameOver = true;
     }
 
     protected void Attack() {
@@ -150,6 +151,8 @@ public class Enemy : MonoBehaviour
 
     private void OnMouseOver()
     {
+        if (player.gameOver)
+            return;
         canAttack = false; //Enemy can't attack while targeted 
         gameObject.GetComponent<Renderer>().material.color = Color.red;
         attackWait = Random.Range(0.5f, 1.5f) + 1.0f;
@@ -158,6 +161,8 @@ public class Enemy : MonoBehaviour
 
     private void OnMouseExit()
     {
+        if (player.gameOver)
+            return;
         if (attackText.text != "") {
             canAttack = true; //Target gone; enemy can attack
             attackButtonImage.color = Color.white;
