@@ -5,6 +5,8 @@ using UnityEngine;
 public class GameControl : MonoBehaviour
 {
     // Start is called before the first frame update
+
+    int currentStage;
     void Start()
     {
 
