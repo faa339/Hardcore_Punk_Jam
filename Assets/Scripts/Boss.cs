@@ -6,7 +6,8 @@ using TMPro;
 
 public class Boss : Enemy
 {
-    public int bossHealth = 3;
+    public int bossHealth;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -28,7 +29,8 @@ public class Boss : Enemy
         }
         attackText.text = stringInput;
         player = GameObject.Find("Player").GetComponent<Player>();
-        attackWait = Random.Range(1.0f, 2.5f) + 1.0f; //Assign some random time before the enemy can attack
+        attackWait = Random.Range(1.0f, 2.0f) + 0.5f; //Assign some random time before the enemy can attack
+        bossHealth = 3;
         canAttack = true;
         dead = false;
     }
@@ -36,41 +38,47 @@ public class Boss : Enemy
     // Update is called once per frame
     void Update()
     {
-        if (Vector3.Distance(transform.position, player.transform.position) > 20.0f || player.gameOver) {
+        if (dead) {
+            gameObject.GetComponent<SpriteRenderer>().sprite = liveFrames[2];
+            return;
+        }
+
+        if (bossHealth < 1 && dead==false)
+        {
+            
+            dead = true;
+            canAttack = false;
+            attackButton.gameObject.SetActive(false);
+            return;
+            //switch to death sprite
+        }
+
+        if (Vector3.Distance(transform.position, player.transform.position) > 25.0f || player.gameOver || player.gameStart==false) {
             return;
         }
 
         if (attackText.text == "")
         {
-            if (bossHealth <= 0)
+            bossHealth -= 1;
+            for (int i = 0; i < attackInputs.Length; i++)
+                attackInputs[i] = Random.Range(1, 5);
+            stringInput = "";
+            foreach (int i in attackInputs)
             {
-                dead = true;
-                attackButton.gameObject.SetActive(false);
-                //switch to death sprite
-                
+                if (i == 1)
+                    stringInput += "W";
+                else if (i == 2)
+                    stringInput += "A";
+                else if (i == 3)
+                    stringInput += "S";
+                else
+                    stringInput += "D";
             }
-            else {
-                bossHealth -= 1;
-                for (int i = 0; i < attackInputs.Length; i++)
-                    attackInputs[i] = Random.Range(1, 5);
-                stringInput = "";
-                foreach (int i in attackInputs)
-                {
-                    if (i == 1)
-                        stringInput += "W";
-                    else if (i == 2)
-                        stringInput += "A";
-                    else if (i == 3)
-                        stringInput += "S";
-                    else
-                        stringInput += "D";
-                }
-                attackText.text = stringInput;
-            }
+            attackText.text = stringInput;
         }
 
         if (dead == false)
-        { //Boss cases are a bit special -- it can attack while being targeted
+        { 
             if (player.blocking == false)
             { //If targeted and the player isn't blocking
                 if (Input.GetKeyDown(KeyCode.W))
@@ -83,7 +91,7 @@ public class Boss : Enemy
                     else
                     {
                         attackText.text = stringInput;
-                        player.health -= 10;
+                        player.health -= 5;
                     }
 
                 }
@@ -97,7 +105,7 @@ public class Boss : Enemy
                     else
                     {
                         attackText.text = stringInput;
-                        player.health -= 10;
+                        player.health -= 5;
                     }
 
                 }
@@ -111,7 +119,7 @@ public class Boss : Enemy
                     else
                     {
                         attackText.text = stringInput;
-                        player.health -= 10;
+                        player.health -= 5;
                     }
 
                 }
@@ -125,42 +133,47 @@ public class Boss : Enemy
                     else
                     {
                         attackText.text = stringInput;
-                        player.health -= 10;
+                        player.health -= 5;
                     }
 
                 }
             }
 
-            if (attackWait > 0)
+            if (attackWait > 0 && dead==false)
             {
                 attackWait -= Time.deltaTime;
-                if (attackWait <= 1.0f)
+                if (attackWait <= 0.75f)
                 {
                     //Switch back to attack sprite
-                    gameObject.GetComponent<Renderer>().material.color = Color.blue;
+                    gameObject.GetComponent<SpriteRenderer>().sprite = liveFrames[1];
                 }
             }
             else
             {
                 Attack();
-                Debug.Log("Boss Attacked player");
-                attackWait = Random.Range(1.0f, 2.5f) + 1.0f;
-                gameObject.GetComponent<Renderer>().material.color = Color.red;
+                attackWait = Random.Range(1.0f, 2.0f) + 0.5f;
+                gameObject.GetComponent<SpriteRenderer>().sprite = liveFrames[0];
             }
         }
 
     }
 
+    private void Attack()
+    {
+        if (player.blocking == false && dead==false)
+            player.health -= 10;
+    }
+
     private void OnMouseOver()
     {
-        if (player.gameOver)
+        if (player.gameOver || dead)
             return;
         attackButtonImage.color = Color.green;
     }
 
     private void OnMouseExit()
     {
-        if (player.gameOver)
+        if (player.gameOver || dead)
             return;
         if (attackText.text != "")
         {

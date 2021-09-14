@@ -6,7 +6,7 @@ using TMPro;
 public class Enemy : MonoBehaviour
 {
     // Start is called before the first frame update
-    public Texture2D[] liveFrames;
+    public Sprite[] liveFrames;
     public int[] attackInputs;
     public string stringInput;
     public Button attackButton;
@@ -25,7 +25,7 @@ public class Enemy : MonoBehaviour
         //Generating attack input array first -- set numbers up in the editor based on
         //proximity to boss (no more than like 6 or 7)
         attackInputs = new int[attackNumber + 4];
-        for (int i = 0; i < attackInputs.Length; i++)
+        for (int i = 0; i < attackNumber+4; i++)
             attackInputs[i] = Random.Range(1, 5);
         
         attackButtonImage = attackButton.GetComponent<Image>();
@@ -41,7 +41,7 @@ public class Enemy : MonoBehaviour
         }
         attackText.text = stringInput;
         player = GameObject.Find("Player").GetComponent<Player>();
-        attackWait = Random.Range(0.5f, 1.5f) + 1.0f; //Assign some random time before the enemy can attack
+        attackWait = Random.Range(1.0f, 2.0f) + 0.5f; //Assign some random time before the enemy can attack
         canAttack = true;
         dead = false;
 
@@ -50,112 +50,104 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (dead) {
+            gameObject.GetComponent<SpriteRenderer>().sprite = liveFrames[2];
+        }
+
         //Don't attack if the player is too far
-        if (Vector3.Distance(transform.position, player.transform.position) > 10.0f || player.gameOver) {
+        if (Vector3.Distance(transform.position, player.transform.position) > 10.0f || player.gameOver ||player.gameStart==false) {
             return;
         }
-        Debug.Log(Vector3.Distance(transform.position, player.transform.position));
-
-        if (attackText.text == "")
+        
+        if (attackText.text == "") // No inputs left -- trigger death sequence
         {
-            dead = true;
-            attackButton.gameObject.SetActive(false);
+            if (dead == false) {
+                player.hasAttacked = true;
+                attackButton.gameObject.SetActive(false);
+                dead = true;
+            }
             //Switch to death sprite
         }
         if (dead == false && player.gameOver==false) { //Don't bother dealing with this if the entity is dead
-            if (canAttack == false && player.blocking == false)
+            if (canAttack==false && player.blocking == false)
             { //If targeted and the player isn't blocking
+                //Debug.Log(attackText.text);
                 if (Input.GetKeyDown(KeyCode.W))
                 {
                     if (attackText.text[0] == 'W')
                     {
-                        string newStr = attackText.text.Remove(0, 1);
-                        attackText.text = newStr;
+                        attackText.text = attackText.text.Remove(0, 1);
                     }
                     else
                     {
                         attackText.text = stringInput;
-                        player.health -= 5;
                     }
                 }
                 else if (Input.GetKeyDown(KeyCode.A))
                 {
                     if (attackText.text[0] == 'A')
                     {
-                        string newStr = attackText.text.Remove(0, 1);
-                        attackText.text = newStr;
+                        attackText.text = attackText.text.Remove(0, 1);
                     }
                     else
                     {
                         attackText.text = stringInput;
-                        player.health -= 5;
                     }
                 }
                 else if (Input.GetKeyDown(KeyCode.S))
                 {
                     if (attackText.text[0] == 'S')
                     {
-                        string newStr = attackText.text.Remove(0, 1);
-                        attackText.text = newStr;
+                        attackText.text = attackText.text.Remove(0, 1);
                     }
                     else
                     {
                         attackText.text = stringInput;
-                        player.health -= 5;
                     }
                 }
                 else if (Input.GetKeyDown(KeyCode.D))
                 {
                     if (attackText.text[0] == 'D')
                     {
-                        string newStr = attackText.text.Remove(0, 1);
-                        attackText.text = newStr;
+                        attackText.text = attackText.text.Remove(0, 1);
                     }
                     else
                     {
                         attackText.text = stringInput;
-                        player.health -= 5;
                     }
                 }
             }
+            if (attackWait > 0)
+            {
+                attackWait -= Time.deltaTime;
+                if (attackWait <= 0.75f)
+                {
+                    //Switch back to attack sprite
+                    gameObject.GetComponent<SpriteRenderer>().sprite = liveFrames[1];
+                }
+            }
             else
-            { //It's ok to attack when the player isnt targeted or is blocking  
-                if (attackWait > 0)
-                {
-                    attackWait -= Time.deltaTime;
-                    if (attackWait <= 1.0f)
-                    {
-                        //Switch back to attack sprite
-                        gameObject.GetComponent<Renderer>().material.color = Color.blue;
-                    }
-                }
-                else
-                {
-                    Attack();
-                    attackWait = Random.Range(1.0f, 2.5f) + 1.0f;
-                    gameObject.GetComponent<Renderer>().material.color = Color.red;
-                }
+            {
+                Attack();
+                attackWait = Random.Range(1.0f, 2.0f) + 0.5f;
+                gameObject.GetComponent<SpriteRenderer>().sprite = liveFrames[0];
+
             }
         }
         if (player.health <= 0)
             player.gameOver = true;
     }
 
-    protected void Attack() {
-        //Check if player's attackNumber is equal to ours
-        //If so, theyre valid to be attacked; if not, theyre too far
-        //Do the attack animation -- put some brainwaves on it or something
+    private void Attack() {
         if (player.blocking == false)
-            player.health -= 10;
+            player.health -= 5;
     }
 
     private void OnMouseOver()
     {
         if (player.gameOver)
             return;
-        canAttack = false; //Enemy can't attack while targeted 
-        gameObject.GetComponent<Renderer>().material.color = Color.red;
-        attackWait = Random.Range(0.5f, 1.5f) + 1.0f;
+        canAttack = false;
         attackButtonImage.color = Color.green;
     }
 
@@ -164,7 +156,7 @@ public class Enemy : MonoBehaviour
         if (player.gameOver)
             return;
         if (attackText.text != "") {
-            canAttack = true; //Target gone; enemy can attack
+            canAttack = true;
             attackButtonImage.color = Color.white;
             attackText.text = stringInput;
         }
